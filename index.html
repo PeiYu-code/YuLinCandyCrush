@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潤頫單字泡泡龍</title>
+    <style>
+        body {
+            font-family: "Fredoka", "Segoe UI", "Microsoft JhengHei", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px 10px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #00838f;
+            margin: 5px 0 10px 0;
+            font-size: 26px;
+            text-shadow: 2px 2px 0px #ffffff;
+        }
+
+        .controls {
+            margin-bottom: 12px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.85);
+            padding: 8px 24px;
+            border-radius: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-next {
+            padding: 8px 26px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(to bottom, #4dd0e1, #00acc1);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #00838f, 0 6px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.1s ease;
+            position: relative;
+            top: 0;
+        }
+
+        .btn-next:hover {
+            background: linear-gradient(to bottom, #26c6da, #0097a7);
+        }
+
+        .btn-next:active {
+            top: 2px;
+            box-shadow: 0 2px 0 #00838f, 0 3px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-next:disabled {
+            background: #b0bec5;
+            box-shadow: 0 3px 0 #78909c;
+            cursor: not-allowed;
+            top: 0;
+        }
+
+        .status {
+            font-size: 15px;
+            font-weight: bold;
+            color: #006064;
+        }
+
+        .grid-container {
+            display: grid;
+            /* ✨ 設定為 8 欄，搭配 48 個卡片即可完美呈現 6 rows x 8 columns */
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            max-width: 960px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.4);
+            padding: 12px;
+            border-radius: 20px;
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.8), 0 8px 25px rgba(0,0,0,0.08);
+            border: 3px solid #ffffff;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: linear-gradient(to bottom, #ffffff 0%, #e0f2f1 100%);
+            border-radius: 10px;
+            min-height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: #004d40;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: center;
+            padding: 2px 6px;
+            box-shadow: inset 0 2px 2px rgba(255, 255, 255, 0.9), inset 0 -2px 3px rgba(0, 150, 136, 0.2), 0 3px 5px rgba(0, 0, 0, 0.08);
+            border: 2px solid #b2dfdb;
+            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .card.active {
+            background: linear-gradient(to bottom, #fffde7 0%, #fff176 100%);
+            color: #f57f17;
+            transform: scale(1.12);
+            border: 2px solid #ffee58;
+            box-shadow: inset 0 3px 3px rgba(255, 255, 255, 1), inset 0 -3px 5px rgba(245, 127, 23, 0.3), 0 6px 15px rgba(255, 179, 0, 0.4);
+            z-index: 10;
+            animation: jelly 0.4s ease;
+        }
+
+        .card.used {
+            background: linear-gradient(to bottom, #f5f5f5 0%, #e0e0e0 100%);
+            color: #b0bec5;
+            text-decoration: line-through;
+            border: 1px solid #eeeeee;
+            opacity: 0.5;
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        @keyframes jelly {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.18, 0.88); }
+            50% { transform: scale(0.92, 1.08); }
+            75% { transform: scale(1.06, 0.96); }
+            100% { transform: scale(1.12); }
+        }
+    </style>
+</head>
+<body>
+    <h1>潤頫單字泡泡龍</h1>
+
+    <div class="controls">
+        <button id="nextBtn" class="btn-next" onclick="drawNextWord()">Next</button>
+        <div class="status" id="statusText">載入中...</div>
+    </div>
+
+    <div class="grid-container" id="grid"></div>
+
+    <script>
+        const rawWords = [
+            "surgery", "restrict", "fatal", "operation", "drill", "metal",
+            "gap", "guarantee", "waist", "internal", "organ", "permanently",
+            "accident", "unappealing", "pale", "unpleasant", "strengthen",
+            "cheerful", "advantage", "measure", "multiple", "proper",
+            "pursue", "strike", "dumb", "sacrifice", "culture", "athelete", "tough", 
+            "take place", "survive", "beat the clock", "search", "loose", "distance",
+            "estimate", "pattern", "flexible", "arrange", "appointment", "appointed", 
+            "patiently", "show up", "emphasis", "machinery", "punch in", "tight", 
+            "adopt", "junior", "lose track of", "contact", "punish", "severely", 
+            "furious", "quit", "altogether", "concept", "barely", run deep", 
+            "leave A for B", "tradition", "different", "certain", "as long as", 
+            "instead", "extreme"
+        ];
+
+        let currentBatchWords = [];
+        let availableIndices = [];
+        let currentActiveIndex = null;
+
+        const gridElement = document.getElementById('grid');
+        const statusText = document.getElementById('statusText');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // Fisher-Yates 隨機洗牌演算法（確保足夠隨機）
+        function shuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function initGrid() {
+            gridElement.innerHTML = '';
+            availableIndices = [];
+
+            // 1. 使用 Set 自動去重（確保單字不重複）
+            const uniqueWords = Array.from(new Set(rawWords));
+            
+            // 2. 充分隨機洗牌
+            const shuffledAll = shuffle(uniqueWords);
+
+            // 3. 設定最多 48 個單字上限：若多於 48 個則隨機取 48 個，少於則全部列出
+            const targetCount = Math.min(48, uniqueWords.length);
+            currentBatchWords = shuffledAll.slice(0, targetCount);
+
+            // 4. 渲染至網格中
+            currentBatchWords.forEach((word, index) => {
+                availableIndices.push(index);
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.id = `card-${index}`;
+                card.innerText = word;
+                gridElement.appendChild(card);
+            });
+
+            updateStatus();
+        }
+
+        function drawNextWord() {
+            if (currentActiveIndex !== null) {
+                const previousCard = document.getElementById(`card-${currentActiveIndex}`);
+                if (previousCard) {
+                    previousCard.classList.remove('active');
+                    previousCard.classList.add('used');
+                }
+            }
+
+            if (availableIndices.length === 0) {
+                alert('太棒了！本輪所有單字都測驗完畢囉！重新整理頁面可開始新一輪。');
+                nextBtn.disabled = true;
+                nextBtn.innerText = "Finish!";
+                return;
+            }
+
+            const randomIndexPosition = Math.floor(Math.random() * availableIndices.length);
+            const selectedWordIndex = availableIndices[randomIndexPosition];
+
+            const currentCard = document.getElementById(`card-${selectedWordIndex}`);
+            currentCard.classList.add('active');
+            currentActiveIndex = selectedWordIndex;
+
+            availableIndices.splice(randomIndexPosition, 1);
+            updateStatus();
+        }
+
+        function updateStatus() {
+            statusText.innerText = `本輪還剩 ${availableIndices.length} / ${currentBatchWords.length} 個單字`;
+        }
+
+        initGrid();
+    </script>
+</body>
+</html>
